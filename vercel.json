@@ -1,0 +1,7 @@
+{
+  "framework": null,
+  "buildCommand": "",
+  "rewrites": [
+    { "source": "/", "destination": "/exit-machine-prototype%20022726.html" }
+  ]
+}
