@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exit Machine — Diligent One</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#0d1117;--bg2:#131920;--bg3:#1a2130;--bg4:#1e2840;
+    --border:#1e2a3a;--border2:#253040;
+    --text:#e8edf3;--text2:#8a9bb0;--text3:#5a6a7e;
+    --red:#e85555;--orange:#e8913a;--green:#34c97a;--blue:#4a9eff;
+    --purple:#7c6af7;--purple2:#5a4ed4;--teal:#2dd4bf;
+    --diligent:#e53935;
+  }
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.5;min-height:100vh}
+  .outer-chrome{background:#f0f2f5;padding:12px 0 0;min-height:100vh}
+  .chrome-bar{display:flex;align-items:center;gap:12px;padding:0 20px 12px;font-size:12px;color:#555}
+  .chrome-label{font-weight:600;color:#222}
+  .phase-tabs{display:flex;gap:6px;margin-left:auto}
+  .phase-tab{padding:5px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;border:1px solid #d0d5dd;background:#fff;color:#555;transition:all .15s}
+  .phase-tab:hover{background:#e8eaf0;color:#333}
+  .phase-tab.active{background:#1a2130;color:#fff;border-color:#1a2130}
+  .app{background:var(--bg);border-radius:10px 10px 0 0;margin:0 20px;min-height:calc(100vh - 56px);overflow:hidden}
+  .app-header{display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border);gap:12px}
+  .logo-dot{width:28px;height:28px;background:var(--diligent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0}
+  .app-title{font-size:14px;font-weight:600;color:var(--text)}
+  .header-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .activity-btn{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 12px;border-radius:7px;font-size:12px;cursor:pointer}
+  .notif{width:30px;height:30px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
+  .notif-dot{width:7px;height:7px;background:var(--red);border-radius:50%;position:absolute;top:5px;right:5px}
+  .avatar{width:32px;height:32px;background:linear-gradient(135deg,#7c6af7,#4a9eff);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;cursor:pointer}
+  .screen{display:none;padding:24px 24px 40px}
+  .screen.active{display:block}
+  .hero{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:36px 32px;text-align:center;margin-bottom:20px}
+  .hero h1{font-size:28px;font-weight:700;color:var(--text);margin-bottom:8px}
+  .hero p{color:var(--text2);font-size:14px;max-width:520px;margin:0 auto}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+  .card-header{display:flex;align-items:center;padding:14px 18px;gap:10px;border-bottom:1px solid var(--border)}
+  .card-header-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+  .card-title{font-size:13px;font-weight:600;color:var(--text)}
+  .card-sub{font-size:12px;color:var(--text2)}
+  .card-body{padding:16px 18px}
+  .check-row{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--border);transition:background .12s}
+  .check-row:last-child{border-bottom:none}
+  .check-row:hover{background:var(--bg3)}
+  .step-num{width:26px;height:26px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text2);flex-shrink:0}
+  .step-info{flex:1}
+  .step-name{font-size:13px;font-weight:600;color:var(--text)}
+  .step-desc{font-size:12px;color:var(--text2);margin-top:1px}
+  .btn{padding:6px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+  .btn-primary{background:var(--purple);color:#fff}
+  .btn-primary:hover{background:var(--purple2)}
+  .btn-outline{background:transparent;border:1px solid var(--border2);color:var(--text2)}
+  .btn-ghost{background:var(--bg3);border:1px solid var(--border);color:var(--text2)}
+  .btn-ghost:hover{border-color:var(--border2);color:var(--text)}
+  .btn-green{background:#0d3a20;border:1px solid var(--green);color:var(--green)}
+  .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+  .tag-red{background:#3a0d0d;color:var(--red);border:1px solid #5a1515}
+  .tag-orange{background:#3a200d;color:var(--orange);border:1px solid #5a3015}
+  .tag-green{background:#0d3a20;color:var(--green);border:1px solid #155a30}
+  .tag-blue{background:#0d2040;color:var(--blue);border:1px solid #153060}
+  .tag-purple{background:#1a1540;color:var(--purple);border:1px solid #352a70}
+  .tag-teal{background:#0d2a2a;color:var(--teal);border:1px solid #154040}
+  .tag-gray{background:var(--bg3);color:var(--text2);border:1px solid var(--border2)}
+  .score-bar-wrap{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-top:6px}
+  .score-bar-fill{height:100%;border-radius:4px}
+  .stats-row{display:flex;gap:12px;margin-bottom:20px}
+  .stat-box{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+  .stat-val{font-size:22px;font-weight:800;margin-bottom:2px}
+  .stat-label{font-size:11px;color:var(--text2);font-weight:500}
+  .domain-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .domain-row{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer;transition:border-color .15s}
+  .domain-row:hover{border-color:var(--border2)}
+  .domain-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .domain-name{font-size:12px;font-weight:600;color:var(--text)}
+  .scan-row{display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--border)}
+  .scan-row:last-child{border-bottom:none}
+  .agent-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+  .agent-info{flex:1}
+  .agent-name{font-size:13px;font-weight:600;color:var(--text)}
+  .agent-source{font-size:11px;color:var(--text3)}
+  .spin{animation:spin 1.2s linear infinite;display:inline-block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .progress-wrap{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;flex:1}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--blue));border-radius:3px;transition:width .4s}
+  .tier-header{padding:10px 18px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+  .tier-label{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+  .task-item{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;gap:14px;align-items:flex-start}
+  .task-item:last-child{border-bottom:none}
+  .task-item:hover{background:var(--bg3)}
+  .task-main{flex:1}
+  .task-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+  .task-meta{font-size:11.5px;color:var(--text2);margin-bottom:6px}
+  .task-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+  .task-actions{display:flex;gap:8px;margin-top:8px}
+  .dual-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+  .track-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .track-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .track-title{font-size:14px;font-weight:700}
+  .track-score{font-size:28px;font-weight:800}
+  .track-body{padding:16px 18px}
+  .track-stat{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+  .track-stat:last-child{border-bottom:none}
+  .track-stat-label{color:var(--text2)}
+  .track-stat-val{font-weight:600;color:var(--text)}
+  .sync-banner{background:var(--bg3);border:1px solid var(--teal);border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .sync-dot{width:8px;height:8px;background:var(--teal);border-radius:50%;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .decision-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:12px;cursor:pointer;transition:border-color .15s}
+  .decision-card:hover{border-color:var(--purple)}
+  .decision-top{display:flex;align-items:flex-start;gap:12px}
+  .decision-num{width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--text2);flex-shrink:0}
+  .decision-info{flex:1}
+  .decision-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
+  .decision-tags{display:flex;gap:6px;flex-wrap:wrap}
+  .ready-badge{padding:3px 10px;border-radius:5px;font-size:11px;font-weight:700;flex-shrink:0}
+  .ready{background:#0d3a20;color:var(--green);border:1px solid var(--green)}
+  .partial{background:#3a200d;color:var(--orange);border:1px solid var(--orange)}
+  .decision-expand{padding-top:14px;border-top:1px solid var(--border);margin-top:14px}
+  .ebitda-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px}
+  .ebitda-table th{text-align:left;padding:6px 10px;background:var(--bg3);color:var(--text2);font-weight:600;font-size:11px}
+  .ebitda-table td{padding:7px 10px;border-bottom:1px solid var(--border)}
+  .ebitda-table tr:last-child td{border-bottom:none}
+  .accept-pct{display:inline-block;width:50px;height:6px;border-radius:3px;vertical-align:middle;margin-left:6px}
+  .gantt-row{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--border)}
+  .gantt-row:last-child{border-bottom:none}
+  .gantt-label{flex:1;font-size:12.5px;color:var(--text)}
+  .gantt-sub{font-size:11px;color:var(--text2)}
+  .gantt-status{font-size:12px;font-weight:600;width:120px;text-align:right}
+  .gantt-bar-wrap{width:120px;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+  .gantt-bar-fill{height:100%;border-radius:3px}
+  .summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+  .summary-stat{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center}
+  .summary-val{font-size:20px;font-weight:800;color:var(--text);margin-bottom:2px}
+  .summary-label{font-size:11px;color:var(--text2)}
+  .section-title{font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--text3);margin:20px 0 10px}
+  .insight{background:var(--bg3);border-left:3px solid var(--purple);padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;color:var(--text2);margin-top:10px}
+  .insight strong{color:var(--purple)}
+  .actions-bar{display:flex;gap:10px;padding-top:16px;border-top:1px solid var(--border);margin-top:16px}
+  .benchmark{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  .benchmark-text{font-size:12.5px;color:var(--text2)}
+  .benchmark-text strong{color:var(--green)}
+  .score-update-demo{background:#0d3a20;border:1px solid var(--green);border-radius:8px;padding:12px 16px;margin-top:12px;font-size:12.5px;color:var(--green);display:none}
+  .score-update-demo.show{display:block}
+  .score-ring{display:flex;align-items:center;gap:20px;padding:20px 18px;border-bottom:1px solid var(--border)}
+  .score-circle{width:80px;height:80px;border-radius:50%;background:conic-gradient(var(--purple) 0% 68%,var(--bg3) 68% 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .score-inner{width:62px;height:62px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;flex-direction:column}
+  .score-num{font-size:20px;font-weight:800;color:var(--text)}
+  .score-pct{font-size:10px;color:var(--text2)}
+  .score-details{flex:1}
+  .score-headline{font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px}
+  .score-sub{font-size:12px;color:var(--text2);margin-bottom:8px}
+  .score-pills{display:flex;gap:8px}
+  .lens-row{display:flex;gap:8px;margin-bottom:16px}
+  .lens-btn{flex:1;padding:8px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-size:12px;font-weight:600;text-align:center;transition:all .15s}
+  .lens-btn:hover{border-color:var(--border2);color:var(--text)}
+  .lens-btn.active-lens{background:var(--bg4);border-color:var(--purple);color:var(--purple)}
+  .check-list{list-style:none;display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+  .check-list li{font-size:12px;color:var(--text2);display:flex;gap:8px;align-items:center}
+  .check-list li::before{content:"✓";color:var(--green);font-weight:700;flex-shrink:0}
+  .deal-complete{background:linear-gradient(135deg,#0d3a20,#0d2040);border:1px solid var(--green);border-radius:12px;padding:28px 32px;text-align:center;margin-bottom:20px}
+  .deal-complete h2{font-size:22px;font-weight:800;color:var(--green);margin-bottom:6px}
+  .deal-complete p{font-size:14px;color:var(--text2)}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="outer-chrome">
+  <div class="chrome-bar">
+    <span style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:.5px">PROTOTYPE</span>
+    <span class="chrome-label">Deal Readiness</span>
+    <div class="phase-tabs">
+      <div class="phase-tab active" onclick="showPhase(1,this)">1. Cold Start</div>
+      <div class="phase-tab" onclick="showPhase(2,this)">2. Readiness</div>
+      <div class="phase-tab" onclick="showPhase(3,this)">3. Remediation</div>
+      <div class="phase-tab" onclick="showPhase(4,this)">4. Fork</div>
+      <div class="phase-tab" onclick="showPhase(5,this)">5. Decision Hub</div>
+      <div class="phase-tab" onclick="showPhase(6,this)">6. Close</div>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="app-header">
+      <div class="logo-dot">D</div>
+      <span class="app-title">Diligent Command Center</span>
+      <div class="header-right">
+        <div class="activity-btn">☰ Recent activity <span style="background:var(--purple);color:#fff;padding:1px 6px;border-radius:4px;font-size:10px">2</span></div>
+        <div class="notif">🔔<div class="notif-dot"></div></div>
+        <div class="avatar">EV</div>
+      </div>
+    </div>
+
+    <!-- PHASE 1: COLD START -->
+    <div id="phase1" class="screen active">
+      <div style="margin-bottom:28px">
+        <h1 style="font-size:26px;font-weight:700;color:var(--text);margin-bottom:6px">Ready to assess your transaction readiness, Elena?</h1>
+        <p style="font-size:14px;color:var(--text2)">Board Resolution #2026-003 was approved last night. I've pulled everything together — here's what I know and how to get started.</p>
+      </div>
+
+      <div style="background:linear-gradient(160deg,#1a1540 0%,#0d1a30 60%,#0d1117 100%);border:1px solid var(--purple);border-radius:14px;margin-bottom:24px;overflow:hidden">
+        <!-- header -->
+        <div style="padding:24px 28px 0;display:flex;align-items:flex-start;gap:14px">
+          <div style="width:36px;height:36px;border-radius:10px;background:var(--purple2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:2px">✦</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+              <span style="font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--purple)">Diligent Agent</span>
+              <span class="tag tag-purple">New insight</span>
+              <span style="font-size:11px;color:var(--text3);margin-left:auto">Just now · from Diligent Boards</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- divider -->
+        <div style="margin:18px 28px;border-top:1px solid var(--border)"></div>
+
+        <!-- message body -->
+        <div style="padding:0 28px 20px;font-size:13.5px;line-height:1.8;color:var(--text2)">
+          <p style="margin-bottom:14px">Last night, the Board unanimously approved <strong style="color:var(--text)">Resolution #2026-003</strong> — authorizing exploration of strategic alternatives. I detected this automatically via Diligent Boards and flagged it as a transaction readiness trigger.</p>
+
+          <p style="margin-bottom:16px">Here's what I already know about Meridian Labs, without you lifting a finger:</p>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
+            <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:8px;padding:12px 14px">
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Governance data</div>
+              <div style="font-size:13px;font-weight:600;color:var(--text)">14 months on Diligent One</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px">Board resolutions, entity records, compliance calendars, risk assessments — all indexed</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:8px;padding:12px 14px">
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Entity coverage</div>
+              <div style="font-size:13px;font-weight:600;color:var(--text)">15 legal entities · 6 jurisdictions</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px">Including Meridian UK Ltd and Alpha Tech Texas LLC — already flagged</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:8px;padding:12px 14px">
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Documents indexed</div>
+              <div style="font-size:13px;font-weight:600;color:var(--text)">312 documents across connected systems</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px">SharePoint, Diligent Boards, Entities, NetSuite, Carta</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:8px;padding:12px 14px">
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">What I'll benchmark against</div>
+              <div style="font-size:13px;font-weight:600;color:var(--text)">M&A + IPO frameworks simultaneously</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px">6 specialist agents will run in parallel — results in under 2 minutes</div>
+            </div>
+          </div>
+
+          <p style="font-size:12.5px;color:var(--text3);border-left:2px solid var(--purple);padding-left:12px">The median Series C at board authorization scores 55% on transaction readiness. Based on your governance data, I expect you to come in above that — but we need to run the assessment to know exactly where you stand and what to fix first.</p>
+        </div>
+
+        <!-- CTAs -->
+        <div style="padding:16px 28px;border-top:1px solid var(--border);background:rgba(0,0,0,0.2);display:flex;align-items:center;gap:10px">
+          <button class="btn btn-primary" style="padding:10px 24px;font-size:13px" onclick="showPhase(2,document.querySelectorAll('.phase-tab')[1]);runScan()">Run Readiness Assessment →</button>
+          <button class="btn btn-ghost" style="padding:10px 20px;font-size:13px">View Entity Health First</button>
+          <span style="font-size:11.5px;color:var(--text3);margin-left:8px">Takes ~2 minutes · No setup required</span>
+        </div>
+      </div>
+
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">Direct your autonomous AI workforce.</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Ask questions or choose an action below. Work entirely within Diligent.</div>
+        <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;display:flex;align-items:center;padding:12px 16px;gap:10px">
+          <input type="text" placeholder="Ask a question or describe what you need..." style="flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:13px;font-family:inherit" />
+          <button class="btn btn-primary" style="padding:6px 14px;font-size:12px" onclick="showPhase(2,document.querySelectorAll('.phase-tab')[1]);runScan()">→</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 2: READINESS SCAN + SCORECARD -->
+    <div id="phase2" class="screen">
+      <div id="scanView">
+        <div style="margin-bottom:28px">
+          <h1 style="font-size:26px;font-weight:700;color:var(--text);margin-bottom:6px">Running your assessment now, Elena.</h1>
+          <p style="font-size:14px;color:var(--text2)">6 specialist agents are scanning in parallel. This takes about 2 minutes — no input needed from you yet.</p>
+        </div>
+        <div class="hero" style="padding:28px 32px;display:none">
+          <h1 style="font-size:22px">Running Readiness Assessment…</h1>
+          <p>6 specialist agents scanning in parallel across all governance domains</p>
+          <div style="margin-top:16px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px"><span>Overall progress</span><span id="scanPct">0%</span></div>
+            <div class="progress-wrap" style="height:10px"><div class="progress-fill" id="scanBar" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Agent coordination — live</div><div style="margin-left:auto;color:var(--text3);font-size:11px">Estimated time: ~45 seconds</div></div>
+          <div class="scan-row"><div class="agent-icon" style="background:#1a1540">⚖️</div><div class="agent-info"><div class="agent-name">Entity Compliance Agent</div><div class="agent-source">Diligent Entities · 15 entities, 6 jurisdictions</div></div><div id="ag1"><span class="spin">⟳</span> Scanning</div></div>
+          <div class="scan-row"><div class="agent-icon" style="background:#0d2040">📋</div><div class="agent-info"><div class="agent-name">Corporate Records Agent</div><div class="agent-source">Diligent Boards · 47 board actions</div></div><div id="ag2" style="color:var(--text3)">Queued</div></div>
+          <div class="scan-row"><div class="agent-icon" style="background:#0d3a20">💰</div><div class="agent-info"><div class="agent-name">Financial Health Agent</div><div class="agent-source">NetSuite · GL sync</div></div><div id="ag3" style="color:var(--text3)">Queued</div></div>
+          <div class="scan-row"><div class="agent-icon" style="background:#1a1540">📊</div><div class="agent-info"><div class="agent-name">Cap Table Agent</div><div class="agent-source">Carta · last sync: Feb 20</div></div><div id="ag4" style="color:var(--text3)">Queued</div></div>
+          <div class="scan-row"><div class="agent-icon" style="background:#3a200d">🔐</div><div class="agent-info"><div class="agent-name">IP & Contracts Agent</div><div class="agent-source">SharePoint · 312 documents</div></div><div id="ag5" style="color:var(--text3)">Queued</div></div>
+          <div class="scan-row"><div class="agent-icon" style="background:#0d2a2a">🏛️</div><div class="agent-info"><div class="agent-name">Regulatory & Tax Agent</div><div class="agent-source">Diligent Compliance</div></div><div id="ag6" style="color:var(--text3)">Queued</div></div>
+        </div>
+      </div>
+
+      <div id="scorecardView" class="hidden">
+        <div style="margin-bottom:28px">
+          <h1 style="font-size:26px;font-weight:700;color:var(--text);margin-bottom:6px">Here's where Meridian Labs stands, Elena.</h1>
+          <p style="font-size:14px;color:var(--text2)">You're 13 points above the Series C median. Three critical issues need your attention before you can go to market.</p>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="score-ring">
+            <div class="score-circle"><div class="score-inner"><div class="score-num">68</div><div class="score-pct">%</div></div></div>
+            <div class="score-details">
+              <div class="score-headline">Transaction Readiness Scorecard</div>
+              <div class="score-sub">Meridian Labs · February 25, 2026</div>
+              <div class="score-pills">
+                <span class="tag tag-red">🔴 3 Critical</span>
+                <span class="tag tag-orange">⚠️ 14 Attention</span>
+                <span class="tag tag-green">✅ 41 Deal-ready</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-body" style="padding-top:12px">
+            <div class="benchmark"><div style="font-size:20px">📈</div><div class="benchmark-text">Median Series C at board authorization: <strong>55%</strong>. You're <strong>13 points above average</strong> — that's 14 months of governance data working for you before the deal started.</div></div>
+            <div class="lens-row">
+              <div class="lens-btn active-lens">📊 Overview</div>
+              <div class="lens-btn" onclick="showPhase(4,document.querySelectorAll('.phase-tab')[3])">🔀 M&A Lens →</div>
+              <div class="lens-btn" onclick="showPhase(4,document.querySelectorAll('.phase-tab')[3])">📈 IPO Lens →</div>
+              <div class="lens-btn" onclick="showPhase(4,document.querySelectorAll('.phase-tab')[3])">⚡ Dual-Track →</div>
+            </div>
+          </div>
+        </div>
+        <div class="domain-grid">
+          <div class="domain-row"><div class="domain-top"><span class="domain-name">Entity Compliance</span><span class="tag tag-orange">⚠️</span></div><div style="font-size:12px;color:var(--text2);margin-bottom:4px">82%</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:82%;background:var(--orange)"></div></div></div>
+          <div class="domain-row"><div class="domain-top"><span class="domain-name">Corporate Records</span><span class="tag tag-orange">⚠️</span></div><div style="font-size:12px;color:var(--text2);margin-bottom:4px">73%</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:73%;background:var(--orange)"></div></div></div>
+          <div class="domain-row" style="border-color:#5a1515"><div class="domain-top"><span class="domain-name">Cap Table & Equity</span><span class="tag tag-red">🔴</span></div><div style="font-size:12px;color:var(--text2);margin-bottom:4px">52%</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:52%;background:var(--red)"></div></div></div>
+          <div class="domain-row"><div class="domain-top"><span class="domain-name">Financial Statements</span><span class="tag tag-orange">⚠️</span></div><div style="font-size:12px;color:var(--text2);margin-bottom:4px">78%</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:78%;background:var(--orange)"></div></div></div>
+          <div class="domain-row" style="border-color:#5a1515"><div class="domain-top"><span class="domain-name">IP & Contracts</span><span class="tag tag-red">🔴</span></div><div style="font-size:12px;color:var(--text2);margin-bottom:4px">61%</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:61%;background:var(--red)"></div></div></div>
+          <div class="domain-row"><div class="domain-top"><span class="domain-name">Tax Compliance</span><span class="tag tag-green">✅</span></div><div style="font-size:12px;color:var(--text2);margin-bottom:4px">94%</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:94%;background:var(--green)"></div></div></div>
+          <div class="domain-row"><div class="domain-top"><span class="domain-name">HR & Employment</span><span class="tag tag-orange">⚠️</span></div><div style="font-size:12px;color:var(--text2);margin-bottom:4px">69%</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:69%;background:var(--orange)"></div></div></div>
+          <div class="domain-row"><div class="domain-top"><span class="domain-name">Regulatory</span><span class="tag tag-orange">⚠️</span></div><div style="font-size:12px;color:var(--text2);margin-bottom:4px">76%</div><div class="score-bar-wrap"><div class="score-bar-fill" style="width:76%;background:var(--orange)"></div></div></div>
+        </div>
+        <div class="actions-bar">
+          <button class="btn btn-primary" onclick="showPhase(3,document.querySelectorAll('.phase-tab')[2])">Generate Remediation Plan →</button>
+          <button class="btn btn-ghost">Export for Board</button>
+          <button class="btn btn-ghost">View Trajectory</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 3: REMEDIATION PLAN -->
+    <div id="phase3" class="screen">
+      <div style="margin-bottom:28px;display:flex;align-items:flex-end;justify-content:space-between">
+        <div>
+          <h1 style="font-size:26px;font-weight:700;color:var(--text);margin-bottom:6px">Three things need your sign-off today, Elena.</h1>
+          <p style="font-size:14px;color:var(--text2)">I've generated a 58-task remediation plan. Start with the critical items — one of them takes 30 minutes and unblocks everything else.</p>
+        </div>
+        <div style="text-align:right;font-size:12px;color:var(--text2);flex-shrink:0;margin-left:24px"><div>Critical resolved by: <strong style="color:var(--text)">2 weeks</strong></div><div>Full readiness (90%+): <strong style="color:var(--text)">10 weeks</strong></div></div>
+      </div>
+      <div class="card">
+        <div class="tier-header"><span class="tag tag-red">CRITICAL</span><span class="tier-label" style="color:var(--red)">Fix immediately · 3 tasks · Blocks closing</span></div>
+        <div class="task-item">
+          <div class="task-main">
+            <div class="task-tags"><span class="tag tag-red">Entity Compliance</span><span class="tag tag-red">Blocks Closing</span></div>
+            <div class="task-title">Alpha Tech Texas LLC — Forfeited with Comptroller</div>
+            <div class="task-meta">Filing pre-filled · $50 fee calculated · Est. resolution: <strong>30 minutes</strong></div>
+            <div style="font-size:12px;color:var(--text2)">Action required: CFO approval to submit</div>
+            <div class="task-actions">
+              <button class="btn btn-green" onclick="approveTexas()">Approve & Submit</button>
+              <button class="btn btn-ghost">Review Detail</button>
+            </div>
+            <div id="texasApproved" class="score-update-demo">✅ Submitted to Texas Comptroller · Entity Compliance: 82% → 89% · Overall: 68% → 71%</div>
+          </div>
+        </div>
+        <div class="task-item">
+          <div class="task-main">
+            <div class="task-tags"><span class="tag tag-red">IP & Contracts</span><span class="tag tag-red">Deal-Breaker Risk</span><span class="tag tag-purple">Assigned: David Park (GC)</span></div>
+            <div class="task-title">Founder IP assignment gap — James Liu</div>
+            <div class="task-meta">3 remediation options drafted · Est. resolution: <strong>2–4 weeks</strong></div>
+            <div style="font-size:12px;color:var(--text2)">Action required: GC decision on approach · Buyer's #1 diligence focus</div>
+            <div class="task-actions"><button class="btn btn-primary">View Options</button><button class="btn btn-ghost">Reassign</button></div>
+          </div>
+        </div>
+        <div class="task-item">
+          <div class="task-main">
+            <div class="task-tags"><span class="tag tag-red">Cap Table & Equity</span><span class="tag tag-orange">Board Approval Needed</span></div>
+            <div class="task-title">Missing board resolution — 2023 option pool expansion</div>
+            <div class="task-meta">Retroactive ratification resolution drafted · Est. resolution: <strong>1–2 weeks</strong></div>
+            <div style="font-size:12px;color:var(--text2)">Action required: Corporate Secretary review → route to Board workflow</div>
+            <div class="task-actions"><button class="btn btn-primary">View Draft Resolution</button><button class="btn btn-ghost">Route to Board</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tier-header"><span class="tag tag-orange">HIGH VALUE</span><span class="tier-label" style="color:var(--orange)">Complete before marketing · 14 tasks</span></div>
+        <div class="task-item"><div class="task-main"><div class="task-tags"><span class="tag tag-orange">Financial</span><span class="tag tag-blue">M&A-Specific</span></div><div class="task-title">Prepare Adjusted EBITDA bridge with add-back analysis</div><div class="task-meta">Agent pre-populated bridge · 5 add-back candidates · Human judgment required</div><div class="task-actions"><button class="btn btn-ghost" onclick="showPhase(5,document.querySelectorAll('.phase-tab')[4])">Open Decision Hub →</button></div></div></div>
+        <div class="task-item"><div class="task-main"><div class="task-tags"><span class="tag tag-orange">Contracts</span><span class="tag tag-red">$4.7M at Risk</span></div><div class="task-title">Change-of-control clause scan — 312 contracts</div><div class="task-meta">8 CoC provisions found · $4.7M revenue at risk · Consent strategy needed</div><div class="task-actions"><button class="btn btn-ghost">View Findings</button><button class="btn btn-ghost">Draft Consent Requests</button></div></div></div>
+        <div class="task-item"><div class="task-main"><div class="task-tags"><span class="tag tag-orange">Entity</span></div><div class="task-title">Meridian UK Ltd — Annual return preparation</div><div class="task-meta">Compliance Agent preparing filing · Due in 47 days</div><div class="task-actions"><button class="btn btn-ghost">Review</button></div></div></div>
+        <div class="task-item" style="padding:10px 18px;color:var(--text3);font-size:12px;cursor:pointer">+10 more tasks · click to expand →</div>
+      </div>
+      <div class="card">
+        <div class="tier-header"><span class="tag tag-gray">STANDARD</span><span class="tier-label" style="color:var(--text2)">Complete before VDR opens · 41 tasks</span></div>
+        <div style="padding:16px 18px;color:var(--text2);font-size:12.5px;display:flex;align-items:center;justify-content:space-between"><span>41 tasks across all domains — VDR population, data room taxonomy, document formatting</span><button class="btn btn-ghost" style="font-size:11px">Expand All</button></div>
+      </div>
+      <div class="actions-bar">
+        <button class="btn btn-primary" onclick="showPhase(4,document.querySelectorAll('.phase-tab')[3])">Approve Plan & Activate Dual-Track →</button>
+        <button class="btn btn-ghost">Adjust Priorities</button>
+        <button class="btn btn-ghost">Assign All</button>
+      </div>
+    </div>
+
+    <!-- PHASE 4: DUAL-TRACK FORK -->
+    <div id="phase4" class="screen">
+      <div style="margin-bottom:28px">
+        <h1 style="font-size:26px;font-weight:700;color:var(--text);margin-bottom:6px">You're now running dual-track, Elena.</h1>
+        <p style="font-size:14px;color:var(--text2)">M&A and IPO lenses are both active — synced from one truth layer. 41 tasks apply to both paths, so this isn't double the work.</p>
+      </div>
+      <div class="sync-banner">
+        <div class="sync-dot"></div>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--teal)">Synchronization: ON</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Any update to the truth layer propagates to both M&A and IPO views within minutes. They cannot contradict each other.</div></div>
+        <button class="btn btn-ghost" style="font-size:11px">Sync Log</button>
+      </div>
+      <div class="dual-grid">
+        <div class="track-card">
+          <div class="track-header"><div><div class="track-title" style="color:var(--blue)">M&A Readiness</div><div style="font-size:11px;color:var(--text2);margin-top:2px">Strategic sale to financial or strategic buyer</div></div><div class="track-score" style="color:var(--blue)">74%</div></div>
+          <div style="padding:10px 18px 4px"><div class="score-bar-wrap"><div class="score-bar-fill" style="width:74%;background:var(--blue)"></div></div></div>
+          <div class="track-body">
+            <div class="track-stat"><span class="track-stat-label">Remaining tasks</span><span class="track-stat-val">22</span></div>
+            <div class="track-stat"><span class="track-stat-label">Estimated ready</span><span class="track-stat-val">8 weeks</span></div>
+            <div class="track-stat"><span class="track-stat-label">Focus areas</span><span class="track-stat-val" style="font-size:11px;text-align:right">EBITDA · CIM · VDR · Buyer financials</span></div>
+            <div class="track-stat"><span class="track-stat-label">CoC risk</span><span class="track-stat-val" style="color:var(--orange)">$4.7M · 8 contracts</span></div>
+          </div>
+          <div style="padding:0 18px 16px;display:flex;gap:8px">
+            <button class="btn btn-primary" style="flex:1;font-size:11px" onclick="showMaTasks()">View M&A Tasks</button>
+            <button class="btn btn-ghost" style="font-size:11px">CIM Draft</button>
+          </div>
+        </div>
+        <div class="track-card">
+          <div class="track-header"><div><div class="track-title" style="color:var(--purple)">IPO Readiness</div><div style="font-size:11px;color:var(--text2);margin-top:2px">Public offering on major exchange</div></div><div class="track-score" style="color:var(--purple)">54%</div></div>
+          <div style="padding:10px 18px 4px"><div class="score-bar-wrap"><div class="score-bar-fill" style="width:54%;background:var(--purple)"></div></div></div>
+          <div class="track-body">
+            <div class="track-stat"><span class="track-stat-label">Remaining tasks</span><span class="track-stat-val">47</span></div>
+            <div class="track-stat"><span class="track-stat-label">Estimated ready</span><span class="track-stat-val">18 weeks</span></div>
+            <div class="track-stat"><span class="track-stat-label">Focus areas</span><span class="track-stat-val" style="font-size:11px;text-align:right">GAAP audit · S-1 · SOX · Board comp</span></div>
+            <div class="track-stat"><span class="track-stat-label">Gap vs. M&A</span><span class="track-stat-val" style="color:var(--orange)">20% · +10 weeks</span></div>
+          </div>
+          <div style="padding:0 18px 16px;display:flex;gap:8px">
+            <button class="btn btn-ghost" style="flex:1;font-size:11px">View IPO Tasks</button>
+            <button class="btn btn-ghost" style="font-size:11px">S-1 Checklist</button>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><div class="card-header-icon" style="background:#0d2a2a">⚡</div><div><div class="card-title">Shared Foundation — 41 tasks apply to both paths</div><div class="card-sub">Dual-track ≠ double the work. These tasks are done once.</div></div></div>
+        <div class="card-body"><div style="display:flex;flex-wrap:wrap;gap:6px"><span class="tag tag-teal">Entity compliance</span><span class="tag tag-teal">IP chain of title</span><span class="tag tag-teal">Cap table cleanup</span><span class="tag tag-teal">Minute book remediation</span><span class="tag tag-teal">HR agreements</span><span class="tag tag-teal">Tax clearances</span></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-header-icon" style="background:#3a200d">🔄</div><div><div class="card-title">Sync Event — Live Demo</div><div class="card-sub">See how a truth-layer update propagates to both views</div></div><button class="btn btn-primary" style="margin-left:auto;font-size:11px" onclick="triggerSync()">Trigger Sync Event</button></div>
+        <div id="syncDemo" class="card-body hidden">
+          <div style="font-size:12.5px;margin-bottom:12px"><span class="tag tag-orange">NetSuite</span> <strong style="color:var(--text)">Revenue correction detected</strong> — ($180K) adjustment from Q4 restatement</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:12px">
+            <div style="background:var(--bg3);border:1px solid var(--blue);border-radius:8px;padding:12px"><div style="color:var(--blue);font-weight:700;margin-bottom:8px">M&A View — Updated</div><div style="color:var(--text2)">✅ EBITDA bridge recalculated</div><div style="color:var(--text2)">✅ Buyer-specific financials updated</div><div style="color:var(--orange)">⚠️ CIM Section 4 flagged for review</div></div>
+            <div style="background:var(--bg3);border:1px solid var(--purple);border-radius:8px;padding:12px"><div style="color:var(--purple);font-weight:700;margin-bottom:8px">IPO View — Updated</div><div style="color:var(--text2)">✅ GAAP financials updated</div><div style="color:var(--text2)">✅ MD&A recalculated</div><div style="color:var(--orange)">⚠️ S-1 draft flagged for review</div></div>
+          </div>
+          <div style="margin-top:12px;font-size:11.5px;color:var(--text2)">Both views updated in <strong style="color:var(--teal)">47 seconds</strong> · 6 downstream artifacts updated · No manual reconciliation required</div>
+        </div>
+      </div>
+      <div id="maTasks" class="card hidden">
+        <div class="card-header"><div class="card-title">M&A-Specific Tasks — 22 remaining</div><button class="btn btn-ghost" style="margin-left:auto;font-size:11px" onclick="hideMaTasks()">Hide</button></div>
+        <div class="task-item"><div class="task-main"><div class="task-tags"><span class="tag tag-blue">Financial Presentation</span><span class="tag tag-purple">🧠 HITL Decision</span></div><div class="task-title">EBITDA add-back analysis and bridge</div><div class="task-meta">Agent pre-work complete · Human judgment required on 5 add-back candidates</div><div class="task-actions"><button class="btn btn-primary" onclick="showPhase(5,document.querySelectorAll('.phase-tab')[4])">Open in Decision Hub →</button></div></div></div>
+        <div class="task-item"><div class="task-main"><div class="task-tags"><span class="tag tag-blue">Deal Process</span></div><div class="task-title">Buyer target list — final selection</div><div class="task-meta">Strategic and financial buyers mapped · Final selection requires CFO input</div><div class="task-actions"><button class="btn btn-ghost">View Options</button></div></div></div>
+        <div class="task-item"><div class="task-main"><div class="task-tags"><span class="tag tag-orange">Protective Provisions</span><span class="tag tag-red">$4.7M at Risk</span></div><div class="task-title">Change-of-control clause review</div><div class="task-meta">312 contracts scanned · 8 CoC provisions · $4.7M revenue at risk</div><div class="task-actions"><button class="btn btn-ghost">View Contracts</button><button class="btn btn-ghost">Draft Consents</button></div></div></div>
+      </div>
+      <div class="actions-bar">
+        <button class="btn btn-primary" onclick="showPhase(5,document.querySelectorAll('.phase-tab')[4])">Open Decision Hub →</button>
+        <button class="btn btn-ghost">Board Comparison Report</button>
+        <button class="btn btn-ghost">View Shared Tasks</button>
+      </div>
+    </div>
+
+    <!-- PHASE 5: DECISION HUB -->
+    <div id="phase5" class="screen">
+      <div style="margin-bottom:28px">
+        <h1 style="font-size:26px;font-weight:700;color:var(--text);margin-bottom:6px">Four decisions are waiting for you, Elena.</h1>
+        <p style="font-size:14px;color:var(--text2)">I've assembled everything you need to make each call. I don't decide — I arm you with the context so you can.</p>
+      </div>
+      <div class="insight" style="margin-bottom:16px"><strong>Principle:</strong> The orchestrator never recommends. It assembles context, benchmarks, and options. Every decision surfaces only when all context is ready — or tells you exactly what's still missing.</div>
+      <div class="decision-card" onclick="toggleDecision('dec7body')">
+        <div class="decision-top">
+          <div class="decision-num">7</div>
+          <div class="decision-info"><div class="decision-title">Adjusted EBITDA Add-Backs — Final Selection</div><div class="decision-tags"><span class="tag tag-blue">Financial judgment</span><span class="tag tag-blue">M&A-specific</span></div></div>
+          <div class="ready-badge ready">READY</div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-top:8px;margin-left:40px">Why this can't be automated: EBITDA add-backs require your judgment on buyer defensibility and negotiating posture.</div>
+        <div id="dec7body" class="decision-expand hidden" onclick="event.stopPropagation()">
+          <ul class="check-list"><li>GAAP net income: $2.1M (NetSuite, verified)</li><li>5 add-back candidates with market acceptance rates</li><li>Comparable SaaS median: 85% of net income</li><li>Buyer profiles: Titan (aggressive) · Pinnacle (conservative)</li><li>Outside counsel memo on defensibility</li></ul>
+          <table class="ebitda-table">
+            <tr><th>Add-back Item</th><th>Amount</th><th>Market Accept.</th><th>Status</th></tr>
+            <tr><td>Founder excess comp (above market)</td><td>$780K</td><td><span style="color:var(--green)">91%</span></td><td><span class="tag tag-green">Include</span></td></tr>
+            <tr><td>One-time legal (litigation settled)</td><td>$340K</td><td><span style="color:var(--green)">88%</span></td><td><span class="tag tag-green">Include</span></td></tr>
+            <tr><td>Office relocation expense</td><td>$210K</td><td><span style="color:var(--orange)">74%</span></td><td><span class="tag tag-orange">Borderline</span></td></tr>
+            <tr><td>Stock-based compensation</td><td>$190K</td><td><span style="color:var(--orange)">67%</span></td><td><span class="tag tag-orange">Borderline</span></td></tr>
+            <tr><td style="color:var(--orange)">Strategic R&D (CEO override)</td><td>$1.2M</td><td><span style="color:var(--red)">23%</span></td><td><span class="tag tag-red">⚠ Low confidence</span></td></tr>
+          </table>
+          <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--text2);margin-bottom:12px">Total add-backs as % of GAAP net income: <strong style="color:var(--orange)">124%</strong> (SaaS median: 85% · 39% above). Removing low-confidence items drops to 85% — defensible.</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:10px">🧠 This is your judgment call. Here's the data.</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost" style="font-size:11px">Accept all ($2.72M)</button>
+            <button class="btn btn-primary" style="font-size:11px">Remove low-confidence ($1.52M — defensible)</button>
+            <button class="btn btn-ghost" style="font-size:11px">Custom selection</button>
+          </div>
+        </div>
+      </div>
+      <div class="decision-card" onclick="toggleDecision('dec8body')">
+        <div class="decision-top">
+          <div class="decision-num">8</div>
+          <div class="decision-info"><div class="decision-title">Founder IP Remediation Approach — James Liu</div><div class="decision-tags"><span class="tag tag-purple">Legal strategy</span><span class="tag tag-teal">Shared (M&A + IPO)</span></div></div>
+          <div class="ready-badge ready">READY</div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-top:8px;margin-left:40px">Why this can't be automated: Remediation approach affects deal timeline, founder relationship, and legal exposure differently.</div>
+        <div id="dec8body" class="decision-expand hidden" onclick="event.stopPropagation()">
+          <ul class="check-list"><li>IP assignment gap identified (2019 PIIA incomplete)</li><li>3 remediation options drafted by outside counsel</li><li>Timeline and risk analysis for each option</li><li>James Liu availability: confirmed this week</li></ul>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+            <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:10px 12px;font-size:12px"><div style="font-weight:600;margin-bottom:3px">Option A: Retroactive assignment agreement</div><div style="color:var(--text2)">Fastest · Founder signs updated PIIA · Low cost · Some legal exposure remains</div></div>
+            <div style="background:var(--bg3);border:1px solid var(--purple);border-radius:6px;padding:10px 12px;font-size:12px"><div style="font-weight:600;color:var(--purple);margin-bottom:3px">Option B: IP purchase agreement (recommended by counsel)</div><div style="color:var(--text2)">Clean transfer · $15–25K cost · Stronger buyer confidence · 2–3 week timeline</div></div>
+            <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:10px 12px;font-size:12px"><div style="font-weight:600;margin-bottom:3px">Option C: Buyer rep & warranty insurance rider</div><div style="color:var(--text2)">Acceptable if timeline &lt; 3 weeks · $40–60K premium · Buyer may still flag</div></div>
+          </div>
+          <div style="display:flex;gap:8px"><button class="btn btn-primary" style="font-size:11px">Select Option B</button><button class="btn btn-ghost" style="font-size:11px">Route to David Park (GC)</button></div>
+        </div>
+      </div>
+      <div class="decision-card">
+        <div class="decision-top">
+          <div class="decision-num">9</div>
+          <div class="decision-info"><div class="decision-title">Buyer Target List — Final Selection</div><div class="decision-tags"><span class="tag tag-blue">Strategic judgment</span><span class="tag tag-blue">M&A-specific</span></div></div>
+          <div class="ready-badge partial">PARTIAL (2 of 3)</div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-top:8px;margin-left:40px">Missing: Banker NDA status (expected Feb 27) · <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px;margin-left:6px">Remind</button></div>
+      </div>
+      <div class="decision-card" onclick="toggleDecision('dec10body')">
+        <div class="decision-top">
+          <div class="decision-num">10</div>
+          <div class="decision-info"><div class="decision-title">VDR Phased Disclosure Rules</div><div class="decision-tags"><span class="tag tag-teal">Process design</span><span class="tag tag-blue">M&A-specific</span></div></div>
+          <div class="ready-badge ready">READY</div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-top:8px;margin-left:40px">Why this can't be automated: Disclosure timing affects negotiating leverage and information asymmetry strategy.</div>
+        <div id="dec10body" class="decision-expand hidden" onclick="event.stopPropagation()">
+          <ul class="check-list"><li>VDR taxonomy drafted (247 folders, M&A standard)</li><li>3-phase disclosure schedule with rationale</li><li>Sensitive document list (customer contracts, IP, financials)</li><li>Buyer profiles and expected diligence focus areas</li></ul>
+          <div style="display:flex;gap:8px;margin-top:4px"><button class="btn btn-primary" style="font-size:11px">Approve Phase 1 Disclosure Rules</button><button class="btn btn-ghost" style="font-size:11px">Customize Schedule</button></div>
+        </div>
+      </div>
+      <div class="actions-bar">
+        <button class="btn btn-primary" onclick="showPhase(6,document.querySelectorAll('.phase-tab')[5])">Proceed to Closing Orchestration →</button>
+        <button class="btn btn-ghost">View All 30 Decisions</button>
+        <button class="btn btn-ghost">Export Decision Log</button>
+      </div>
+    </div>
+
+    <!-- PHASE 6: CLOSING -->
+    <div id="phase6" class="screen">
+      <div style="margin-bottom:28px">
+        <h1 style="font-size:26px;font-weight:700;color:var(--text);margin-bottom:6px">You're in the final 30 days, Elena.</h1>
+        <p style="font-size:14px;color:var(--text2)">Meridian Labs × Titan Corp · Target close March 26, 2026. Certificates, consents, funds flow — I'm tracking all of it.</p>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><div class="card-header-icon" style="background:#0d3a20">📜</div><div><div class="card-title">Good Standing Certificates</div><div class="card-sub">6 jurisdictions · Auto-scheduled</div></div><span class="tag tag-green" style="margin-left:auto">ON TRACK</span></div>
+        <div class="gantt-row"><div style="flex:1"><div class="gantt-label">Delaware (primary)</div><div class="gantt-sub">Auto-requested · 3–5 business days</div></div><div class="gantt-bar-wrap"><div class="gantt-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="gantt-status" style="color:var(--green)">✅ Received</div></div>
+        <div class="gantt-row"><div style="flex:1"><div class="gantt-label">Texas (Alpha Tech LLC)</div><div class="gantt-sub">Post-reinstatement · 5–7 business days</div></div><div class="gantt-bar-wrap"><div class="gantt-bar-fill" style="width:65%;background:var(--blue)"></div></div><div class="gantt-status" style="color:var(--blue)">⏳ In progress</div></div>
+        <div class="gantt-row"><div style="flex:1"><div class="gantt-label">United Kingdom (Meridian UK Ltd)</div><div class="gantt-sub">Companies House · 10–14 business days</div></div><div class="gantt-bar-wrap"><div class="gantt-bar-fill" style="width:30%;background:var(--purple)"></div></div><div class="gantt-status" style="color:var(--purple)">⏳ Requested</div></div>
+        <div class="gantt-row"><div style="flex:1"><div class="gantt-label">California · New York · Canada</div><div class="gantt-sub">3 jurisdictions · Staggered by timeline</div></div><div class="gantt-bar-wrap"><div class="gantt-bar-fill" style="width:10%;background:var(--text3)"></div></div><div class="gantt-status" style="color:var(--text2)">Scheduled</div></div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><div class="card-header-icon" style="background:#3a200d">📋</div><div><div class="card-title">Third-Party Consents</div><div class="card-sub">14 contracts · Change-of-control provisions</div></div><span class="tag tag-orange" style="margin-left:auto">2 PENDING</span></div>
+        <div class="gantt-row"><div style="flex:1"><div class="gantt-label">9 consents received</div><div class="gantt-sub">Executed copies in VDR</div></div><div class="gantt-status" style="color:var(--green)">✅ 9 / 14</div></div>
+        <div class="gantt-row"><div style="flex:1"><div class="gantt-label">3 in progress</div><div class="gantt-sub">Reminder emails auto-sent · Expected this week</div></div><div class="gantt-status" style="color:var(--blue)">⏳ 3 / 14</div></div>
+        <div class="gantt-row"><div style="flex:1"><div class="gantt-label" style="color:var(--orange)">2 not yet requested — $1.2M revenue</div><div class="gantt-sub" style="color:var(--orange)">🧠 HITL: approval needed to initiate contact</div></div><div class="gantt-status"><button class="btn btn-primary" style="font-size:11px">Approve Outreach</button></div></div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><div class="card-header-icon" style="background:#0d2040">⚖️</div><div><div class="card-title">Regulatory Filings</div><div class="card-sub">HSR · CFIUS · State filings</div></div><span class="tag tag-green" style="margin-left:auto">CLEARED</span></div>
+        <div class="gantt-row"><div style="flex:1"><div class="gantt-label">HSR filing — Not required</div><div class="gantt-sub">$120M deal value below $133.9M threshold · Saved ~$30K</div></div><div class="gantt-status" style="color:var(--green)">✅ N/A</div></div>
+        <div class="gantt-row"><div style="flex:1"><div class="gantt-label">CFIUS review — Not required</div><div class="gantt-sub">No sensitive tech / foreign buyer trigger · Saved ~$40K</div></div><div class="gantt-status" style="color:var(--green)">✅ N/A</div></div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><div class="card-header-icon" style="background:#1a1540">💰</div><div><div class="card-title">Funds Flow & Cap Table Waterfall</div><div class="card-sub">Carta integration · Merger agreement terms applied</div></div><span class="tag tag-green" style="margin-left:auto">RECONCILED</span></div>
+        <div class="gantt-row"><div style="flex:1"><div class="gantt-label">Cap table waterfall</div><div class="gantt-sub">Carta sync · Merger terms applied · Common, preferred, options calculated</div></div><div class="gantt-status" style="color:var(--green)">✅ Complete</div></div>
+        <div class="gantt-row"><div style="flex:1"><div class="gantt-label">Escrow allocation — $6M (5% of deal value)</div><div class="gantt-sub">18-month tail · R&W insurance primary</div></div><div class="gantt-status" style="color:var(--green)">✅ Confirmed</div></div>
+        <div class="gantt-row"><div style="flex:1"><div class="gantt-label">Penny reconciliation</div><div class="gantt-sub">All payoff letters, wires, and prorations verified</div></div><div class="gantt-status" style="color:var(--green)">✅ Verified</div></div>
+      </div>
+      <div class="deal-complete">
+        <h2>Transaction Complete</h2>
+        <p style="margin-bottom:16px">Meridian Labs × Titan Corp · Closed March 26, 2026</p>
+        <div class="summary-grid" style="text-align:left">
+          <div class="summary-stat"><div class="summary-val" style="color:var(--green)">147</div><div class="summary-label">Days to close (avg: 240–320)</div></div>
+          <div class="summary-stat"><div class="summary-val" style="color:var(--blue)">58/58</div><div class="summary-label">Remediation tasks completed</div></div>
+          <div class="summary-stat"><div class="summary-val" style="color:var(--purple)">30</div><div class="summary-label">HITL decisions — all with full context</div></div>
+          <div class="summary-stat"><div class="summary-val" style="color:var(--teal)">3</div><div class="summary-label">Critical gaps caught proactively</div></div>
+          <div class="summary-stat"><div class="summary-val" style="color:var(--green)">6</div><div class="summary-label">Good Standing certs auto-procured</div></div>
+          <div class="summary-stat"><div class="summary-val" style="color:var(--blue)">1,247</div><div class="summary-label">Audit trail actions logged</div></div>
+        </div>
+        <div class="insight" style="text-align:left;margin-top:8px;border-left-color:var(--green)"><strong style="color:var(--green)">Elena made 30 decisions over 147 days. The orchestrator handled everything between them.</strong><br><br>Same decisions. Better information. Half the time.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function showPhase(n,el){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.phase-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('phase'+n).classList.add('active');
+  el.classList.add('active');
+}
+let scanDone=false;
+function runScan(){
+  if(scanDone){showScorecard();return;}
+  scanDone=true;
+  const bar=document.getElementById('scanBar'),pct=document.getElementById('scanPct');
+  const done='<span style="color:var(--green)">✅ Done</span>',scan='<span class="spin">⟳</span> Scanning';
+  let p=0;
+  const iv=setInterval(()=>{
+    p=Math.min(p+2,100);
+    bar.style.width=p+'%';pct.textContent=p+'%';
+    if(p===15){document.getElementById('ag1').innerHTML=done;document.getElementById('ag2').innerHTML=scan;}
+    if(p===30){document.getElementById('ag2').innerHTML=done;document.getElementById('ag3').innerHTML=scan;}
+    if(p===45){document.getElementById('ag3').innerHTML=done;document.getElementById('ag4').innerHTML=scan;}
+    if(p===60){document.getElementById('ag4').innerHTML=done;document.getElementById('ag5').innerHTML=scan;}
+    if(p===80){document.getElementById('ag5').innerHTML=done;document.getElementById('ag6').innerHTML=scan;}
+    if(p===95) document.getElementById('ag6').innerHTML=done;
+    if(p===100){clearInterval(iv);setTimeout(showScorecard,600);}
+  },40);
+}
+function showScorecard(){
+  document.getElementById('scanView').classList.add('hidden');
+  document.getElementById('scorecardView').classList.remove('hidden');
+}
+function approveTexas(){document.getElementById('texasApproved').classList.add('show');}
+function triggerSync(){document.getElementById('syncDemo').classList.remove('hidden');}
+function showMaTasks(){document.getElementById('maTasks').classList.remove('hidden');}
+function hideMaTasks(){document.getElementById('maTasks').classList.add('hidden');}
+function toggleDecision(id){document.getElementById(id).classList.toggle('hidden');}
+</script>
+</body>
+</html>
